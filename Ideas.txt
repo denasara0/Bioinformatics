@@ -1,0 +1,10 @@
+1. Bounded-error Optimal MSA
+- Using an A* style search
+- Using h(n) to estimate the minimum possible future alignment cost from any given partial alignment
+- Where h(n) = sum of the paijrwise alignment scoes for remainder of unaligned suffixes
+- Pruning to stop expanding when state lower bound cost > best current cost
+
+2. Divide and Conquer Pruning (maybe?)
+- Partition sequences by high similarity using k-mer matching
+- Perform a full DP with those regions, and connect with heuristic paths
+- Use anchor points to constrain the total computation
