@@ -8,6 +8,33 @@ Approach: Reduce DP table size using heuristics for large MSAs.
 Found in the Ideas.txt file
 [ideas](https://github.com/denasara0/Bioinformatics/blob/main/Ideas.txt)
 
+## Quick Start
+
+### Setup
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Run example:
+   ```bash
+   python example_usage.py
+   ```
+
+3. Run tests:
+   ```bash
+   pytest tests/
+   ```
+
+### Project Structure
+- `src/` - Main source code
+  - `baseline_msa.py` - Baseline MSA implementation (progressive alignment)
+  - `astar_msa.py` - A* search with heuristic pruning
+  - `evaluation.py` - Evaluation framework and metrics
+- `tests/` - Unit tests
+- `data/` - Input datasets
+- `results/` - Experimental results and visualizationasd
+
 ## Project Outline:
 #### 1 - Introduction
 1.1 Biological primer
