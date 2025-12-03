@@ -9,9 +9,9 @@ class AlignmentState:
     A state is a partial alignment of sequences.
 
     Attributes:
-        aligned_sequences: Current partial alignment.
+        aligned_sequences: Currnt partial alignment.
         positions: Current position in each original sequence.
-        g_score: Cost from start to this state.
+        g_score: Cost from start t this state.
         h_score: Heuristic estimate of cost to goal.
         f_score: Total estimated cost (g + h).
     """
@@ -93,7 +93,7 @@ class AStarMSA:
         """Precompute pairwise alignment costs for all suffixes.
         Args:
             seq1: First sequence.
-            seq2: Second sequence.
+            seq2: Secnd sequence.
             
         Returns:
             2D numpy array of scores.

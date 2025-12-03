@@ -56,7 +56,7 @@ class MSAEvaluator:
         """Calculate score for a specific column.
 
         Args:
-            alignment: List of aligned sequences.
+            alignmnt: List of aligned sequences.
             col_idx: Index of the column to score.
 
         Returns:
@@ -159,11 +159,9 @@ class MSAEvaluator:
         if use_pruning and actual_threshold is None:
             actual_threshold = baseline_result['score']
         
-        # Evaluate A*
         astar_result = self.evaluate_astar(sequences, actual_threshold)
         results['astar'] = astar_result
         
-        # Calculate comparison metrics
         results['score_improvement'] = astar_result['score'] - baseline_result['score']
         results['score_improvement_pct'] = (
             (astar_result['score'] - baseline_result['score']) / abs(baseline_result['score']) * 100

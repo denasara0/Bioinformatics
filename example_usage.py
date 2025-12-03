@@ -59,7 +59,6 @@ def get_example_datasets() -> List[Dict]:
 
 
 def run_benchmark():
-    """Run benchmark on example datasets."""
     evaluator = MSAEvaluator()
     results = []
     

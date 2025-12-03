@@ -91,7 +91,7 @@ class BaselineMSA:
             sequences: List of sequences to align.
         
         Returns:
-            List of aligned sequences.
+            List of algned sequences.
         """
         if len(sequences) == 0:
             return []
