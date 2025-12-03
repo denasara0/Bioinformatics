@@ -65,7 +65,7 @@ def run_benchmark():
     
     datasets = get_example_datasets()
     
-    print(f"Running benchmark on {len(datasets)} synthetic examples...")
+    print(f"Running {len(datasets)} data sets")
     print(f"\n{'Dataset':<12} {'Seqs':<5} {'Len':<5} {'Baseline':<10} {'A* (Opt)':<10} {'Diff':<6} {'Nodes':<10} {'Space Red.':<12}")
     print("-" * 90)
     
