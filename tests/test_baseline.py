@@ -1,5 +1,5 @@
 import pytest
-from src.baseline_msa import BaselineMSA
+from baseline_msa import BaselineMSA
 
 
 def test_pairwise_alignment():

@@ -1,5 +1,5 @@
 import pytest
-from src.evaluation import MSAEvaluator
+from evaluation import MSAEvaluator
 
 
 def test_sum_of_pairs_score():

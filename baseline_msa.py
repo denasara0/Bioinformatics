@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 
 
 class BaselineMSA:
-    """Standard dynamic programming approach for Multiple Sequence Alignment.
+    """Standard dp approach for Multiple Sequence Alignment.
     """
     
     def __init__(self, match_score: int = 2, mismatch_score: int = -1, gap_penalty: int = -1):

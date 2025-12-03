@@ -1,8 +1,8 @@
 import time
 from typing import List, Tuple, Dict, Optional
 import numpy as np
-from src.baseline_msa import BaselineMSA
-from src.astar_msa import AStarMSA
+from baseline_msa import BaselineMSA
+from astar_msa import AStarMSA
 
 
 class MSAEvaluator:

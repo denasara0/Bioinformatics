@@ -3,9 +3,9 @@ import time
 import numpy as np
 from typing import List, Dict
 
-from src.baseline_msa import BaselineMSA
-from src.astar_msa import AStarMSA
-from src.evaluation import MSAEvaluator
+from baseline_msa import BaselineMSA
+from astar_msa import AStarMSA
+from evaluation import MSAEvaluator
 
 
 def get_example_datasets() -> List[Dict]:

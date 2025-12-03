@@ -1,6 +1,6 @@
 import pytest
-from src.astar_msa import AStarMSA
-
+from astar_msa import AStarMSA
+from astar_msa import AlignmentState
 
 def test_astar_simple():
     """Test A* on simple sequences."""
@@ -31,7 +31,6 @@ def test_heuristic_admissibility():
     msa = AStarMSA()
     sequences = ["ACGT", "ACGT"]
     
-    from src.astar_msa import AlignmentState
     state = AlignmentState(
         aligned_sequences=["", ""],
         positions=[0, 0],

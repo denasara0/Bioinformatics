@@ -27,13 +27,11 @@ Found in the Ideas.txt file
    ```
 
 ### Project Structure
-- `src/` - Main source code
-  - `baseline_msa.py` - Baseline MSA implementation (progressive alignment)
-  - `astar_msa.py` - A* search with heuristic pruning
-  - `evaluation.py` - Evaluation framework and metrics
+- `baseline_msa.py` - Baseline MSA implementation (progressive alignment)
+- `astar_msa.py` - A* search with heuristic pruning
+- `evaluation.py` - Evaluation framework and metrics
 - `tests/` - Unit tests
-- `data/` - Input datasets
-- `results/` - Experimental results and visualizationasd
+- `results/` - Experimental results and visualization
 
 ## Project Outline:
 #### 1 - Introduction
