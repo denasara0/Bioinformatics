@@ -1,7 +1,3 @@
-"""
-Tests for A* MSA implementation.
-"""
-
 import pytest
 from src.astar_msa import AStarMSA
 
@@ -44,8 +40,14 @@ def test_heuristic_admissibility():
         f_score=0
     )
     
+    # Precompute heuristic tables manually for the test
+    msa.heuristic_tables = {}
+    n_seqs = len(sequences)
+    for i in range(n_seqs):
+        for j in range(i + 1, n_seqs):
+            msa.heuristic_tables[(i, j)] = msa._precompute_suffix_costs(sequences[i], sequences[j])
+            
     h = msa.heuristic(state, sequences)
-    # Heuristic should be non-negative and reasonable
     assert h >= 0
 
 

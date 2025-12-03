@@ -1,8 +1,3 @@
-"""
-Evaluation framework for MSA algorithms.
-Includes metrics for accuracy, runtime, and memory usage.
-"""
-
 import time
 from typing import List, Tuple, Dict, Optional
 import numpy as np
@@ -11,10 +6,15 @@ from src.astar_msa import AStarMSA
 
 
 class MSAEvaluator:
-    """Evaluates and compares different MSA algorithms."""
     
     def __init__(self, match_score: int = 2, mismatch_score: int = -1, gap_penalty: int = -1):
-        """Initialize evaluator with scoring parameters."""
+        """Initialize evaluator with scoring parameters.
+
+        Args:
+            match_score: Score for matching characters.
+            mismatch_score: Score for mismatching characters.
+            gap_penalty: Penalty for gaps (should be negative).
+        """
         self.match_score = match_score
         self.mismatch_score = mismatch_score
         self.gap_penalty = gap_penalty
@@ -22,7 +22,14 @@ class MSAEvaluator:
         self.astar = AStarMSA(match_score, mismatch_score, gap_penalty)
     
     def sum_of_pairs_score(self, alignment: List[str]) -> int:
-        """Calculate Sum-of-Pairs (SP) score for alignment."""
+        """Calculate score for alignment.
+
+        Args:
+            alignment: List of aligned sequences.
+
+        Returns:
+            Sum of pairwise scores.
+        """
         if len(alignment) < 2:
             return 0
         
@@ -34,7 +41,9 @@ class MSAEvaluator:
             for j in range(i + 1, n_seqs):
                 for k in range(length):
                     char1, char2 = alignment[i][k], alignment[j][k]
-                    if char1 == char2:
+                    if char1 == '-' and char2 == '-':
+                        continue
+                    elif char1 == char2:
                         total_score += self.match_score
                     elif char1 == '-' or char2 == '-':
                         total_score += self.gap_penalty
@@ -44,14 +53,24 @@ class MSAEvaluator:
         return total_score
     
     def column_score(self, alignment: List[str], col_idx: int) -> int:
-        """Calculate score for a specific column."""
+        """Calculate score for a specific column.
+
+        Args:
+            alignment: List of aligned sequences.
+            col_idx: Index of the column to score.
+
+        Returns:
+            Score for the column.
+        """
         column = [seq[col_idx] for seq in alignment]
         n = len(column)
         score = 0
         for i in range(n):
             for j in range(i + 1, n):
                 char1, char2 = column[i], column[j]
-                if char1 == char2:
+                if char1 == '-' and char2 == '-':
+                    continue
+                elif char1 == char2:
                     score += self.match_score
                 elif char1 == '-' or char2 == '-':
                     score += self.gap_penalty
@@ -60,7 +79,14 @@ class MSAEvaluator:
         return score
     
     def evaluate_baseline(self, sequences: List[str]) -> Dict:
-        """Evaluate baseline MSA algorithm."""
+        """Evaluate baseline MSA algorithm.
+
+        Args:
+            sequences: List of sequences to align.
+
+        Returns:
+            Dictionary containing evaluation metrics.
+        """
         start_time = time.time()
         alignment = self.baseline.progressive_align(sequences)
         runtime = time.time() - start_time
@@ -77,10 +103,25 @@ class MSAEvaluator:
         }
     
     def evaluate_astar(self, sequences: List[str], prune_threshold: Optional[int] = None) -> Dict:
-        """Evaluate A* MSA algorithm."""
+        """Evaluate A* MSA algorithm.
+
+        Args:
+            sequences: List of sequences to align.
+            prune_threshold: Optional threshold for pruning.
+
+        Returns:
+            Dictionary containing evaluation metrics.
+        """
         start_time = time.time()
+        
         alignment, score, nodes_expanded = self.astar.align(sequences, prune_threshold)
+            
         runtime = time.time() - start_time
+        
+        # Calculate theoretical DP space size (L^N)
+        n_seqs = len(sequences)
+        avg_len = np.mean([len(s) for s in sequences])
+        theoretical_space = avg_len ** n_seqs
         
         return {
             'algorithm': 'astar',
@@ -88,29 +129,38 @@ class MSAEvaluator:
             'score': score,
             'runtime': runtime,
             'nodes_expanded': nodes_expanded,
-            'n_seqs': len(sequences),
-            'avg_seq_len': np.mean([len(s) for s in sequences]),
+            'theoretical_space': theoretical_space,
+            'space_reduction_pct': (1 - (nodes_expanded / theoretical_space)) * 100 if theoretical_space > 0 else 0,
+            'n_seqs': n_seqs,
+            'avg_seq_len': avg_len,
             'prune_threshold': prune_threshold
         }
     
     def compare_algorithms(self, sequences: List[str], 
                           use_pruning: bool = False,
                           prune_threshold: Optional[int] = None) -> Dict:
-        """
-        Compare baseline and A* algorithms.
+        """Compare baseline and A* algorithms.
+
+        Args:
+            sequences: List of sequences to align.
+            use_pruning: Whether to use pruning for A*.
+            prune_threshold: Threshold for pruning if enabled.
         
         Returns:
-            Dictionary with comparison results
+            Dictionary with comparison results.
         """
         results = {}
         
-        # Evaluate baseline
         baseline_result = self.evaluate_baseline(sequences)
         results['baseline'] = baseline_result
         
+
+        actual_threshold = prune_threshold
+        if use_pruning and actual_threshold is None:
+            actual_threshold = baseline_result['score']
+        
         # Evaluate A*
-        astar_result = self.evaluate_astar(sequences, 
-                                          prune_threshold if use_pruning else None)
+        astar_result = self.evaluate_astar(sequences, actual_threshold)
         results['astar'] = astar_result
         
         # Calculate comparison metrics
@@ -124,7 +174,10 @@ class MSAEvaluator:
         return results
     
     def print_comparison(self, comparison_results: Dict):
-        """Pretty print comparison results."""
+        """
+        Args:
+            comparison_results: Dictionary containing comparison metrics.
+        """
         print("\n" + "="*60)
         print("MSA Algorithm Comparison")
         print("="*60)
@@ -149,18 +202,18 @@ class MSAEvaluator:
             print(f"\nScore improvement: {improvement} ({improvement_pct:.2f}%)")
             
             if improvement > 0:
-                print("✓ A* found better alignment")
+                print("A* found better alignment")
             elif improvement < 0:
-                print("⚠ A* found worse alignment (may need tuning)")
+                print("A* found worse alignment")
             else:
                 print("= Same score")
         
         if 'speedup' in comparison_results:
             speedup = comparison_results['speedup']
             if speedup > 1:
-                print(f"✓ A* is {speedup:.2f}x faster")
+                print(f"A* is {speedup:.2f}x faster")
             elif speedup < 1:
-                print(f"⚠ A* is {1/speedup:.2f}x slower")
+                print(f"A* is {1/speedup:.2f}x slower")
         
         print("="*60 + "\n")
 

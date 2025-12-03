@@ -1,34 +1,36 @@
-"""
-Baseline Multiple Sequence Alignment using Dynamic Programming
-This serves as a reference implementation for correctness validation.
-"""
-
 import numpy as np
 from typing import List, Tuple, Optional
 
 
 class BaselineMSA:
-    """
-    Standard dynamic programming approach for Multiple Sequence Alignment.
-    This is computationally expensive but guarantees optimal alignment.
+    """Standard dynamic programming approach for Multiple Sequence Alignment.
     """
     
     def __init__(self, match_score: int = 2, mismatch_score: int = -1, gap_penalty: int = -1):
-        """
-        Initialize MSA with scoring parameters.
+        """Initialize MSA with scoring parameters.
         
         Args:
-            match_score: Score for matching characters
-            mismatch_score: Score for mismatching characters
-            gap_penalty: Penalty for gaps (should be negative)
+            match_score: Score for matching characters.
+            mismatch_score: Score for mismatching characters.
+            gap_penalty: Penalty for gaps (should be negative).
         """
         self.match_score = match_score
         self.mismatch_score = mismatch_score
         self.gap_penalty = gap_penalty
     
     def score_pairwise(self, char1: str, char2: str) -> int:
-        """Calculate score between two characters."""
-        if char1 == char2:
+        """Calculate score between two characters.
+
+        Args:
+            char1: First character.
+            char2: Second character.
+
+        Returns:
+            The score for the pair of characters.
+        """
+        if char1 == '-' and char2 == '-':
+            return 0
+        elif char1 == char2:
             return self.match_score
         elif char1 == '-' or char2 == '-':
             return self.gap_penalty
@@ -36,22 +38,23 @@ class BaselineMSA:
             return self.mismatch_score
     
     def align_pairwise(self, seq1: str, seq2: str) -> Tuple[str, str, int]:
-        """
-        Pairwise alignment using Needleman-Wunsch algorithm.
+        """Pairwise alignment using Needleman-Wunsch algorithm.
         
+        Args:
+            seq1: First sequence.
+            seq2: Second sequence.
+
         Returns:
-            Tuple of (aligned_seq1, aligned_seq2, alignment_score)
+            Tuple of (aligned_seq1, aligned_seq2, alignment_score).
         """
         m, n = len(seq1), len(seq2)
         dp = np.zeros((m + 1, n + 1), dtype=int)
         
-        # Initialize first row and column
         for i in range(1, m + 1):
             dp[i][0] = dp[i-1][0] + self.gap_penalty
         for j in range(1, n + 1):
             dp[0][j] = dp[0][j-1] + self.gap_penalty
         
-        # Fill DP table
         for i in range(1, m + 1):
             for j in range(1, n + 1):
                 match = dp[i-1][j-1] + self.score_pairwise(seq1[i-1], seq2[j-1])
@@ -59,7 +62,6 @@ class BaselineMSA:
                 insert = dp[i][j-1] + self.gap_penalty
                 dp[i][j] = max(match, delete, insert)
         
-        # Traceback
         aligned_seq1, aligned_seq2 = [], []
         i, j = m, n
         while i > 0 or j > 0:
@@ -83,73 +85,83 @@ class BaselineMSA:
         
         return aligned_seq1, aligned_seq2, score
     
-    def sum_of_pairs_score(self, alignment: List[str]) -> int:
-        """
-        Calculate Sum-of-Pairs (SP) score for a multiple sequence alignment.
-        
-        Args:
-            alignment: List of aligned sequences (all same length)
-        
-        Returns:
-            Sum of all pairwise alignment scores
-        """
-        if len(alignment) < 2:
-            return 0
-        
-        n_seqs = len(alignment)
-        length = len(alignment[0])
-        total_score = 0
-        
-        for i in range(n_seqs):
-            for j in range(i + 1, n_seqs):
-                for k in range(length):
-                    total_score += self.score_pairwise(alignment[i][k], alignment[j][k])
-        
-        return total_score
-    
     def progressive_align(self, sequences: List[str]) -> List[str]:
-        """
-        Progressive alignment (simplified version).
-        This is a heuristic approach, not optimal, but faster than full DP.
-        
+        """Progressive alignment using Star Alignment strategy.
         Args:
-            sequences: List of sequences to align
+            sequences: List of sequences to align.
         
         Returns:
-            List of aligned sequences
+            List of aligned sequences.
         """
         if len(sequences) == 0:
             return []
         if len(sequences) == 1:
             return sequences
         
-        # Start with first two sequences
-        aligned = list(self.align_pairwise(sequences[0], sequences[1])[:2])
+        center_seq = sequences[0]
+        n_seqs = len(sequences)
         
-        # Progressively add remaining sequences
-        for seq in sequences[2:]:
-            # Align new sequence with consensus or first aligned sequence
-            # This is a simplified version - full progressive alignment is more complex
-            new_aligned, _, _ = self.align_pairwise(seq, aligned[0].replace('-', ''))
-            # Adjust gaps to match existing alignment
-            # (This is simplified - proper progressive alignment needs profile alignment)
-            aligned.append(new_aligned)
+        pairwise_alignments = []
         
-        return aligned
-    
-    def full_dp_msa(self, sequences: List[str]) -> Optional[List[str]]:
-        """
-        Full dynamic programming for MSA (exponential complexity).
-        Only feasible for very small numbers of sequences.
+        # 1. Align all sequences to the center sequence
+        for i in range(1, n_seqs):
+            aligned_other, aligned_center, _ = self.align_pairwise(sequences[i], center_seq)
+            pairwise_alignments.append((aligned_other, aligned_center))
+            
+        # 2. Determine maximum gaps needed before each position of center_seq
+        max_gaps = [0] * (len(center_seq) + 1)
         
-        WARNING: This is computationally intractable for more than 3-4 sequences.
-        """
-        if len(sequences) > 3:
-            print("Warning: Full DP MSA is only feasible for 3 or fewer sequences.")
-            return None
+        for _, aligned_center in pairwise_alignments:
+            current_pos = 0
+            current_gaps = 0
+            for char in aligned_center:
+                if char == '-':
+                    current_gaps += 1
+                else:
+                    max_gaps[current_pos] = max(max_gaps[current_pos], current_gaps)
+                    current_pos += 1
+                    current_gaps = 0
+            max_gaps[current_pos] = max(max_gaps[current_pos], current_gaps)
+            
+        # 3. Construct the final MSA
+        final_alignment = []
         
-        # This would require implementing full multi-dimensional DP
-        # For now, return None - this is a placeholder
-        # Full implementation would be very complex
-        return None
+        master_center = []
+        for i, char in enumerate(center_seq):
+            master_center.append('-' * max_gaps[i])
+            master_center.append(char)
+        master_center.append('-' * max_gaps[len(center_seq)])
+        final_alignment.append("".join(master_center))
+        
+        for aligned_other, aligned_center in pairwise_alignments:
+            final_seq = []
+            idx = 0
+            
+            for i in range(len(center_seq) + 1):
+                target_gaps = max_gaps[i]
+                actual_gaps = 0
+                gap_chars = []
+                
+                while idx < len(aligned_center):
+                    c_center = aligned_center[idx]
+                    c_other = aligned_other[idx]
+                    
+                    if c_center == '-':
+                        actual_gaps += 1
+                        gap_chars.append(c_other)
+                        idx += 1
+                    else:
+                        break
+                
+                final_seq.extend(gap_chars)
+                final_seq.append('-' * (target_gaps - actual_gaps))
+                
+                if i < len(center_seq):
+                    final_seq.append(aligned_other[idx])
+                    idx += 1
+            
+            final_alignment.append("".join(final_seq))
+            
+        return final_alignment
+
 
